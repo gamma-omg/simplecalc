@@ -1,14 +1,17 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+pub mod simplecalc {
+    use thiserror::Error;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+    #[derive(Debug, Error)]
+    pub enum Error {
+        #[error("Unexpected token at {0}")]
+        TokenizerError(usize),
+        #[error("Unexpected lexem at {0}")]
+        LexerError(usize),
+        #[error("Failed to evaluate expression")]
+        EvalError,
+    }
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+    pub fn eval(expr: &str) -> Result<f64, Error> {
+        todo!("Implement evaluation");
     }
 }
