@@ -3,7 +3,7 @@ use crate::{
     Error,
 };
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Lexem {
     Number(f64),
     Operator(Operator),
@@ -11,7 +11,7 @@ pub enum Lexem {
     ParClose,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Operator {
     Add,
     Sub,
@@ -20,7 +20,19 @@ pub enum Operator {
     Pow,
 }
 
-type LexemStream = Vec<Lexem>;
+impl Operator {
+    pub fn priority(&self) -> u8 {
+        match self {
+            Operator::Add => 0,
+            Operator::Sub => 0,
+            Operator::Mul => 1,
+            Operator::Div => 1,
+            Operator::Pow => 2,
+        }
+    }
+}
+
+pub type LexemStream = Vec<Lexem>;
 
 #[derive(Debug, PartialEq)]
 enum LexerState<'a> {
@@ -139,8 +151,8 @@ pub fn parse(tokens: &TokenStream) -> Result<LexemStream, Error> {
 mod tests {
     use std::vec;
 
-    use crate::tokenizer::tokenize; 
     use super::{parse, Lexem, Operator};
+    use crate::tokenizer::tokenize;
 
     #[test]
     fn test_lexer() {
@@ -158,8 +170,7 @@ mod tests {
     }
 
     #[test]
-    fn test_leading_minus()
-    {
+    fn test_leading_minus() {
         let lexems = parse(&tokenize("-5*(-10)").unwrap()).unwrap();
         assert_eq!(
             lexems,
@@ -168,14 +179,13 @@ mod tests {
                 Lexem::Operator(Operator::Mul),
                 Lexem::ParOpen,
                 Lexem::Number(-10.0),
-                Lexem::ParClose,                
+                Lexem::ParClose,
             ]
         )
     }
 
     #[test]
-    fn test_leading_plus()
-    {
+    fn test_leading_plus() {
         let lexems = parse(&tokenize("+5*(+10)").unwrap()).unwrap();
         assert_eq!(
             lexems,
@@ -184,14 +194,13 @@ mod tests {
                 Lexem::Operator(Operator::Mul),
                 Lexem::ParOpen,
                 Lexem::Number(10.0),
-                Lexem::ParClose,                
+                Lexem::ParClose,
             ]
         )
     }
 
     #[test]
-    fn test_leading_minus_before_par()
-    {
+    fn test_leading_minus_before_par() {
         let lexems = parse(&tokenize("-(-1)").unwrap()).unwrap();
         assert_eq!(
             lexems,
@@ -206,8 +215,7 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_floats()
-    {
+    fn test_parse_floats() {
         let lexems = parse(&tokenize("12.34+(-56.78)").unwrap()).unwrap();
         assert_eq!(
             lexems,
@@ -222,8 +230,20 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_errors()
-    {
+    fn test_parse_pow() {
+        let lexems = parse(&tokenize("2**3").unwrap()).unwrap();
+        assert_eq!(
+            lexems,
+            vec![
+                Lexem::Number(2.0),
+                Lexem::Operator(Operator::Pow),
+                Lexem::Number(3.0),
+            ]
+        )
+    }
+
+    #[test]
+    fn test_parse_errors() {
         assert!(parse(&tokenize("2+").unwrap()).is_err());
         assert!(parse(&tokenize("2+(").unwrap()).is_err());
         assert!(parse(&tokenize("11 22").unwrap()).is_err());
