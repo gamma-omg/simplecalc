@@ -148,6 +148,17 @@ mod tests {
                 Token::Whitespace("\n\n"),
                 Token::End,
             ]
+        );
+
+        let tokens = tokenize("\n\n  1 \n").unwrap();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Whitespace("\n\n  "),
+                Token::Number("1"),
+                Token::Whitespace(" \n"),
+                Token::End,
+            ]
         )
     }
 

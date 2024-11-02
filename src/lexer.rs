@@ -70,41 +70,41 @@ pub fn parse(tokens: &TokenStream) -> Result<LexemStream, Error> {
                 }
                 _ => return Err(Error::LexerError(pos)),
             },
-            LexerState::Number { val, sign } => {
-                if let Token::Whitespace(_) = token {
-                    LexerState::Number { val, sign };
-                }
+            LexerState::Number { val, sign } => match token {
+                Token::Whitespace(_) => LexerState::Number { val, sign },
+                _ => {
+                    let num: f64 = val.parse().map_err(|e| Error::ParseNumberError(e))?;
+                    lexems.push(Lexem::Number(num * sign));
 
-                let num: f64 = val.parse().map_err(|e| Error::ParseNumberError(e))?;
-                lexems.push(Lexem::Number(num * sign));
+                    match token {
+                        Token::Operator(op) => LexerState::Operator(op),
+                        Token::ParClose => LexerState::ParClose,
+                        Token::End => LexerState::End,
+                        Token::Number(_) => return Err(Error::LexerError(pos)),
+                        Token::Whitespace(_) => return Err(Error::LexerError(pos)),
+                        Token::ParOpen => return Err(Error::LexerError(pos)),
+                    }
+                }
+            },
+            LexerState::Operator(op) => match token {
+                Token::Whitespace(_) => LexerState::Operator(op),
+                _ => {
+                    match op {
+                        "+" => lexems.push(Lexem::Operator(Operator::Add)),
+                        "-" => lexems.push(Lexem::Operator(Operator::Sub)),
+                        "*" => lexems.push(Lexem::Operator(Operator::Mul)),
+                        "/" => lexems.push(Lexem::Operator(Operator::Div)),
+                        "**" => lexems.push(Lexem::Operator(Operator::Pow)),
+                        _ => return Err(Error::ParseOperatorError(op.to_string())),
+                    }
 
-                match token {
-                    Token::Operator(op) => LexerState::Operator(op),
-                    Token::ParClose => LexerState::ParClose,
-                    Token::End => LexerState::End,
-                    _ => return Err(Error::LexerError(pos)),
+                    match token {
+                        Token::Number(val) => LexerState::Number { val, sign: 1.0 },
+                        Token::ParOpen => LexerState::ParOpen,
+                        _ => return Err(Error::LexerError(pos)),
+                    }
                 }
-            }
-            LexerState::Operator(op) => {
-                if let Token::Whitespace(_) = token {
-                    LexerState::Operator(op);
-                }
-
-                match op {
-                    "+" => lexems.push(Lexem::Operator(Operator::Add)),
-                    "-" => lexems.push(Lexem::Operator(Operator::Sub)),
-                    "*" => lexems.push(Lexem::Operator(Operator::Mul)),
-                    "/" => lexems.push(Lexem::Operator(Operator::Div)),
-                    "**" => lexems.push(Lexem::Operator(Operator::Pow)),
-                    _ => return Err(Error::ParseOperatorError(op.to_string())),
-                }
-
-                match token {
-                    Token::Number(val) => LexerState::Number { val, sign: 1.0 },
-                    Token::ParOpen => LexerState::ParOpen,
-                    _ => return Err(Error::LexerError(pos)),
-                }
-            }
+            },
             LexerState::ParOpen => {
                 if let Token::Whitespace(_) = token {
                     continue;
@@ -251,5 +251,11 @@ mod tests {
         assert!(parse(&tokenize("8/()").unwrap()).is_err());
         assert!(parse(&tokenize("8/(2))").unwrap()).is_err());
         assert!(parse(&tokenize("8.8.10").unwrap()).is_err());
+    }
+
+    #[test]
+    fn test_parse_whitespace() {
+        let lexems = parse(&tokenize("\n\n  1 \n").unwrap()).unwrap();
+        assert_eq!(lexems, vec![Lexem::Number(1.0)])
     }
 }

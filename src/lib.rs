@@ -148,5 +148,6 @@ mod tests {
         assert_eq!(-3.0, eval("1+2**3-10/5*6").unwrap());
         assert_eq!(300.0, eval("2*(100+50)").unwrap());
         assert_eq!(-1.0, eval("-5+4").unwrap());
+        assert_eq!(6.0, eval("1+2+3\n").unwrap());
     }
 }
