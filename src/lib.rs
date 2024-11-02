@@ -1,5 +1,7 @@
+mod lexer;
 mod tokenizer;
 
+use std::num::ParseFloatError;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -8,6 +10,10 @@ pub enum Error {
     TokenizerError(usize),
     #[error("Unexpected lexem at {0}")]
     LexerError(usize),
+    #[error("Failed to parse a number")]
+    ParseNumberError(#[from] ParseFloatError),
+    #[error("Failed to parse operator {0}")]
+    ParseOperatorError(String),
     #[error("Failed to evaluate expression")]
     EvalError,
 }

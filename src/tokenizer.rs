@@ -10,7 +10,7 @@ pub enum Token<'a> {
     End,
 }
 
-type TokenStream<'a> = Vec<Token<'a>>;
+pub type TokenStream<'a> = Vec<Token<'a>>;
 
 #[derive(Debug, PartialEq)]
 enum TokenizerState {
@@ -153,7 +153,7 @@ mod tests {
 
     #[test]
     fn test_error() {
-        let err = tokenize("1+2+@").err();
-        assert!(err.is_some());
+        assert!(tokenize("1+2+@").is_err());
+        assert!(tokenize("11,3").is_err());
     }
 }
