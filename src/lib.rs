@@ -1,3 +1,5 @@
+mod tokenizer;
+
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -10,6 +12,6 @@ pub enum Error {
     EvalError,
 }
 
-pub fn eval(expr: &str) -> Result<f64, Error> {
+pub fn eval(_expr: &str) -> Result<f64, Error> {
     todo!("Implement evaluation");
 }
