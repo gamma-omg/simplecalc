@@ -34,7 +34,7 @@ pub fn tokenize(input: &str) -> Result<TokenStream, Error> {
             _ if ch == '+' || ch == '-' || ch == '*' || ch == '/' => TokenizerState::ParseOperator,
             '(' => TokenizerState::ParOpen(pos),
             ')' => TokenizerState::ParClose(pos),
-            _ => return Err(Error::TokenizerError(pos)),
+            _ => return Err(Error::TokenizerError(pos, input.chars().nth(pos).unwrap())),
         };
 
         if next_state != state {

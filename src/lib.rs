@@ -8,8 +8,8 @@ use tokenizer::tokenize;
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("Unexpected token at {0}")]
-    TokenizerError(usize),
+    #[error("Unexpected token at {0}: {1}")]
+    TokenizerError(usize, char),
     #[error("Unexpected lexem at {0}")]
     LexerError(usize),
     #[error("Failed to parse a number")]
